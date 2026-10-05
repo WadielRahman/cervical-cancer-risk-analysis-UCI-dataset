@@ -780,12 +780,6 @@ def main():
         ],
     )
 
-    st.sidebar.divider()
-    st.sidebar.caption(
-        "Cervical Cancer Patient Data Analysis\n\n"
-        "University Data Analytics Project\n\n"
-        "Dataset: UCI Cervical Cancer Risk Factors"
-    )
 
     # Route to selected page
     if page == "Model Comparison":
