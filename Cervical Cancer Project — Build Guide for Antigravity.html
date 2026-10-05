@@ -1,0 +1,139 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}</style><style>:root{color-scheme:light dark;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}}:root[data-theme="dark"]{color-scheme:dark;--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}:root[data-theme="light"]{color-scheme:light}@media print{:root,:root[data-theme="dark"]{color-scheme:light;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}}body{background:var(--md-bg);color:var(--md-text);max-width:720px;margin:0 auto;padding:32px;display:flex;flex-direction:column;gap:10px;font:14px/1.55 -apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',sans-serif;overflow-wrap:break-word}body>:first-child{margin-top:0}h1,h2,h3,h4,h5,h6{margin:6px 0 0;line-height:1.25;font-weight:600;text-wrap:balance}h1{font-size:1.35em}h2{font-size:1.15em;color:var(--md-muted)}h3,h4,h5,h6{font-size:1em}p,ul,ol,blockquote,table,pre,hr{margin:0}strong{font-weight:600}a{color:var(--md-link);text-decoration:none}a:hover{text-decoration:underline}ul,ol{display:flex;flex-direction:column;gap:6px;padding-left:22px}ul{list-style:disc}ol{list-style:decimal}:is(li,td,th)>*+:is(p,ul,ol,blockquote){margin-top:6px}blockquote{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--md-rule);padding-left:10px;color:var(--md-muted)}:not(pre)>code{background:var(--md-fill);padding:1px 3px;border-radius:4px;font:.92em 'SF Mono',ui-monospace,Menlo,Consolas,monospace}a>code{background:none;color:inherit}pre{background:var(--md-fill);padding:10px 12px;border-radius:6px;overflow-x:auto;font:12px/1.5 'SF Mono',ui-monospace,Menlo,Consolas,monospace;margin-block:4px}pre code{background:none;padding:0;font:inherit}table{width:100%;border-collapse:separate;border-spacing:2px;font:inherit}th,td{padding:6px 8px;border-radius:3px;text-align:left;vertical-align:top}th{background:var(--md-fill-strong);font-weight:600}td{background:var(--md-fill)}:is(th,td) :not(pre)>code{background:transparent}hr{border:0;border-top:1px solid var(--md-rule-strong);margin-block:10px}img{max-width:100%;height:auto;border-radius:4px}</style>
+</head><body>
+<h1>Cervical Cancer Risk Project — Build Guide for Google Antigravity</h1>
+<p>This guide turns <code>cervical_cancer_project_specification.md</code> into an execution plan. It's organized into three major build phases, each one a complete, testable milestone before you move to the next. Feed each section to Antigravity as its own task/prompt — don't ask it to build everything in one pass.</p>
+<hr>
+<h2>SECTION 1 — Data Foundation: Split, Preprocess, and Prove the Pipeline Works</h2>
+<p><strong>Goal of this phase:</strong> a leakage-safe <code>split.py</code> and <code>preprocess.py</code>, plus proof that a saved preprocessing artifact can transform a single new patient record exactly the way it transforms training data. Get this working <em>before</em> touching any model — it's the thing most likely to silently break your live demo later.</p>
+<h3>1.1 Project scaffolding</h3>
+<p>Have Antigravity create the directory structure from spec §15:</p>
+<pre><code>cervical-cancer-analysis/
+├── data/{raw,processed,splits}/
+├── models/
+├── artifacts/{metrics,figures,explainability}/
+├── src/{split.py,preprocess.py,train.py,test.py}
+├── app.py
+├── requirements.txt
+├── README.md
+└── project_specification.md
+</code></pre>
+<p>Pin <code>random_state=42</code> (or any fixed value) everywhere, and make all data paths configurable via a constants module or CLI args — not hard-coded.</p>
+<h3>1.2 <code>split.py</code></h3>
+<ul>
+<li>Load the UCI Cervical Cancer Risk Factors dataset (858 rows). <strong>Do not duplicate rows to hit a 2,000-row target</strong> — document the discrepancy in the README instead (spec §2).</li>
+<li>Identify the target column and separate <code>X</code>/<code>y</code>.</li>
+<li>Stratified <code>train_test_split</code>, fixed seed.</li>
+<li>Save <code>train.csv</code> and <code>test.csv</code> under <code>data/splits/</code>.</li>
+<li>Print shapes and class balance for both sets — this number matters later for imbalance handling.</li>
+<li><strong>Guardrail:</strong> this file must not fit any imputer, encoder, or scaler, and must not train anything.</li>
+</ul>
+<h3>1.3 <code>preprocess.py</code></h3>
+<ul>
+<li>Missing-value handling (the UCI dataset has a known pattern of blank/<code>?</code> entries — treat them as missing, not as a literal category, unless you can justify otherwise).</li>
+<li>Categorical encoding, numeric type handling.</li>
+<li><code>StandardScaler</code> (or equivalent) fit <strong>only on the training split</strong>.</li>
+<li>Wrap everything in a single <code>ColumnTransformer</code> / <code>Pipeline</code> object.</li>
+<li>Save the <em>fitted</em> pipeline object (joblib/pickle) to <code>artifacts/</code> — this is the one object <code>train.py</code>, <code>test.py</code>, and <code>app.py</code> will all share.</li>
+</ul>
+<h3>1.4 Milestone check before moving on</h3>
+<p>Write a throwaway script (or a <code>pytest</code> test) that:</p>
+<ol>
+<li>Loads the saved preprocessing pipeline.</li>
+<li>Constructs one synthetic patient record as a dict/DataFrame, matching the dataset schema.</li>
+<li>Transforms it and confirms the output shape/column order matches what <code>X_train</code> produces.</li>
+</ol>
+<p>If this fails, fix it now. This is Improvement #4 from the earlier review — the bug that's cheapest to catch here and most expensive to catch during a live viva demo.</p>
+<p><strong>Exit criteria for Section 1:</strong> <code>split.py</code> and <code>preprocess.py</code> run end-to-end, the fitted pipeline is saved, and the synthetic-record test passes.</p>
+<hr>
+<h2>SECTION 2 — Modeling: Validation, Imbalance, Selection, and Explainability</h2>
+<p><strong>Goal of this phase:</strong> trained, tuned, fairly-evaluated models plus SHAP explanations — built so that the test set is touched exactly once, at the very end.</p>
+<h3>2.1 Handle class imbalance before anything else (Improvement #2)</h3>
+<p>Check the class balance number from 1.2. If positives are a small minority:</p>
+<ul>
+<li>Use <code>class_weight='balanced'</code> for Logistic Regression, Random Forest, SVM.</li>
+<li>Use <code>scale_pos_weight</code> for XGBoost/LightGBM, and CatBoost's equivalent.</li>
+<li>MLPClassifier has no native class-weighting — compensate via resampling <em>inside</em> the CV fold (not before splitting) if needed, or accept and document the limitation.</li>
+<li>Make <strong>PR-AUC</strong>, not accuracy or ROC-AUC alone, your primary model-selection metric (spec §10).</li>
+</ul>
+<h3>2.2 Feature selection — decide the method and document the simplification (Improvement #3)</h3>
+<p>Pick from: correlation filtering, Mutual Information, RFE, SHAP-based importance (spec §8). Two honest options:</p>
+<ul>
+<li><strong>Rigorous:</strong> re-run selection inside every CV fold (more code, textbook-correct).</li>
+<li><strong>Pragmatic:</strong> run selection once on the full training set, document this explicitly in the README as a scoping simplification for a lab project, and justify it.
+Either is defensible — an <em>undocumented</em> choice is not. Pick one before writing <code>train.py</code>.</li>
+</ul>
+<h3>2.3 <code>train.py</code> — model roster and tuning (Improvement #5)</h3>
+<p>Train, in order of where your effort should actually go:</p>
+<ol>
+<li><strong>Logistic Regression</strong> — interpretable baseline, tune regularization strength only.</li>
+<li><strong>Random Forest</strong> — classic non-linear baseline, moderate tuning (depth, n_estimators).</li>
+<li><strong>MLPClassifier</strong> — required by spec; reuse the handout's settings as a starting point (<code>hidden_layer_sizes</code>, <code>activation='relu'</code>, <code>solver='adam'</code>), but tune <code>hidden_layer_sizes</code> and <code>alpha</code> via CV, not by eyeballing test accuracy.</li>
+<li><strong>XGBoost / LightGBM / CatBoost</strong> — include for completeness, light tuning only; don't over-invest here, they'll likely cluster together on a dataset this small.</li>
+<li><strong>SVM</strong> — optional per spec; include only if it doesn't blow your time budget.</li>
+</ol>
+<p>For every model:</p>
+<ul>
+<li>Use <strong>stratified k-fold CV (k=5)</strong> on the training set only, for both model selection and hyperparameter search.</li>
+<li>Keep search spaces small and defensible (spec §9: &quot;avoid unnecessarily huge searches&quot;).</li>
+<li><strong>Never compare configurations against the test set to pick a winner</strong> — this is the one habit to explicitly avoid carrying over from the DL handout lab. CV score decides the winner; the test set only confirms it once.</li>
+<li>Save each final fitted model to <code>models/</code>.</li>
+</ul>
+<h3>2.4 <code>test.py</code> — the one-shot final evaluation</h3>
+<ul>
+<li>Load the saved preprocessing pipeline and each saved model.</li>
+<li>Transform the test set using the <em>already-fitted</em> pipeline (never refit anything here).</li>
+<li>Compute Precision, Recall, F1, ROC-AUC, PR-AUC, Brier Score, and a confusion matrix per model.</li>
+<li>Save results as JSON/CSV to <code>artifacts/metrics/</code> for the dashboard to read.</li>
+<li><strong>Guardrail:</strong> this script touches the test set for evaluation only, once, after all model/hyperparameter decisions from 2.3 are already locked in.</li>
+</ul>
+<h3>2.5 SHAP explainability</h3>
+<ul>
+<li>Global feature importance per model (at least for your top 2–3 models — you don't need SHAP for every model you trained).</li>
+<li>Local explanation capability for a single record (this will be reused live in Section 3).</li>
+<li>Save figures/artifacts under <code>artifacts/explainability/</code>.</li>
+<li>Phrase everything as &quot;the model weighted this feature&quot; — never as causal language (spec §14).</li>
+</ul>
+<p><strong>Exit criteria for Section 2:</strong> comparison table with all required metrics, every model trained via CV (no test-set peeking during selection), SHAP explanations generated and saved.</p>
+<hr>
+<h2>SECTION 3 — Streamlit Dashboard, Documentation, and Viva Readiness</h2>
+<p><strong>Goal of this phase:</strong> a working app that reuses Section 1's exact preprocessing object, displays Section 2's results honestly, and a README that survives a committee asking &quot;why did you do it this way?&quot;</p>
+<h3>3.1 <code>app.py</code> — Model Comparison &amp; Prediction view (spec §12)</h3>
+<ul>
+<li>Overview section: title, dataset description, <strong>medical-use disclaimer stated up front</strong>, number of models evaluated, and the honest note that the dataset is 858 rows against a 2,000-row guideline — don't bury this.</li>
+<li>Comparison table reading from <code>artifacts/metrics/</code>.</li>
+<li>Model selection + single-record prediction, showing predicted class, probability, and a probability visualization.</li>
+<li>Feature contribution display backed by the saved SHAP artifacts.</li>
+</ul>
+<h3>3.2 <code>app.py</code> — Interactive Patient Risk Assessment view (spec §13)</h3>
+<ul>
+<li>Build the question list directly from the actual dataset schema — no invented variables.</li>
+<li>On submit: construct the feature record → apply the <strong>same saved preprocessing pipeline from Section 1</strong> → predict → generate a live SHAP explanation for that specific input.</li>
+<li>Wording check: never &quot;you have cervical cancer.&quot; Always &quot;the model estimates an elevated probability based on the information provided,&quot; with a visible prompt toward professional evaluation.</li>
+<li>Validate input against the expected schema and handle missing/invalid input with clear errors rather than silent failures.</li>
+</ul>
+<h3>3.3 Error handling and reproducibility pass</h3>
+<ul>
+<li>Confirm every script fails loudly (not silently) on a missing file or schema mismatch (spec requirement #12).</li>
+<li>Confirm fixed seeds are used everywhere results are reported.</li>
+<li>Re-run <code>split.py → preprocess.py → train.py → test.py → app.py</code> from a clean clone to confirm nothing depends on leftover state from earlier runs.</li>
+</ul>
+<h3>3.4 README and documentation</h3>
+<p>Document, explicitly:</p>
+<ul>
+<li>The 858-vs-2000-row discrepancy and why rows weren't duplicated.</li>
+<li>Which feature-selection approach you chose in 2.2 and why.</li>
+<li>How class imbalance was handled per model.</li>
+<li>The CV-then-test-once discipline, stated as a design principle, not just a sentence buried in code comments — this is likely to come up directly in a viva.</li>
+<li>Model comparison summary and the final model(s) chosen for the live dashboard.</li>
+</ul>
+<h3>3.5 Pre-viva self-check</h3>
+<p>Be ready to answer out loud:</p>
+<ul>
+<li>Why wasn't the test set used during model/hyperparameter selection?</li>
+<li>Why PR-AUC over plain accuracy here specifically?</li>
+<li>What would happen if you'd standardized before splitting — walk through the leakage mechanism.</li>
+<li>Why is MLPClassifier required even though tree ensembles likely perform comparably or better on this data (same lesson as the DL handout, Titanic case).</li>
+</ul>
+<p><strong>Exit criteria for Section 3:</strong> dashboard runs end-to-end from a clean environment, both features work against live user input, README is complete, and you can defend every methodological choice without looking it up.</p>
+
+</body></html>

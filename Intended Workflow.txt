@@ -1,0 +1,42 @@
+Raw Dataset
+     |
+     v
+split.py
+     |
+     +--------------------+
+     |                    |
+ Training Set         Test Set
+     |                    |
+     v                    |
+preprocess.py             |
+     |                    |
+ Fit preprocessing        |
+ on TRAIN ONLY            |
+     |                    |
+ Transform train          |
+ and test using           |
+ train-fitted parameters  |
+     |                    |
+     v                    |
+train.py                  |
+     |                    |
+ Train models             |
+ Cross-validation         |
+ Hyperparameter tuning    |
+     |                    |
+     v                    |
+ Saved models ------------+
+     |
+     v
+test.py
+     |
+     v
+Final evaluation
+     |
+     v
+Streamlit Dashboard
+     |
+     +--> Model comparison
+     +--> Prediction
+     +--> Risk assessment
+     +--> SHAP explanations
