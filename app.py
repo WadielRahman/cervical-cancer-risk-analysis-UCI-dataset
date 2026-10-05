@@ -267,7 +267,7 @@ def page_model_comparison():
             })
 
         df_cv = pd.DataFrame(rows)
-        st.dataframe(df_cv, use_column_width=True, hide_index=True)
+        st.dataframe(df_cv, use_container_width=True, hide_index=True)
 
         st.info(
             "**Note:** The test set was NOT used during model selection. "
@@ -300,7 +300,7 @@ def page_model_comparison():
                 })
 
             df_test = pd.DataFrame(rows)
-            st.dataframe(df_test, use_column_width=True, hide_index=True)
+            st.dataframe(df_test, use_container_width=True, hide_index=True)
 
             st.warning(
                 "**Context:** Only 11 positive cases in the test set. "
@@ -324,7 +324,7 @@ def page_model_comparison():
         for title, path in viz_files.items():
             if path.exists():
                 st.markdown(f"**{title}**")
-                st.image(str(path), use_column_width=True)
+                st.image(str(path), use_container_width=True)
                 st.divider()
             else:
                 st.warning(f"{title} not found at {path}")
@@ -338,7 +338,7 @@ def page_model_comparison():
         heatmap_path = EXPLAINABILITY_DIR / "shap_importance_comparison.png"
         if heatmap_path.exists():
             st.markdown("**Cross-Model Feature Importance Comparison**")
-            st.image(str(heatmap_path), use_column_width=True)
+            st.image(str(heatmap_path), use_container_width=True)
             st.divider()
 
         # Individual model SHAP plots
@@ -354,19 +354,19 @@ def page_model_comparison():
         if bar_path.exists():
             with col1:
                 st.markdown(f"**SHAP Bar Plot — {shap_model}**")
-                st.image(str(bar_path), use_column_width=True)
+                st.image(str(bar_path), use_container_width=True)
 
         beeswarm_path = EXPLAINABILITY_DIR / f"shap_beeswarm_{shap_model}.png"
         if beeswarm_path.exists():
             with col2:
                 st.markdown(f"**SHAP Beeswarm — {shap_model}**")
-                st.image(str(beeswarm_path), use_column_width=True)
+                st.image(str(beeswarm_path), use_container_width=True)
 
         # Waterfall plot
         waterfall_files = list(EXPLAINABILITY_DIR.glob(f"shap_waterfall_{shap_model}_*.png"))
         if waterfall_files:
             st.markdown(f"**SHAP Waterfall — Individual Patient Example ({shap_model})**")
-            st.image(str(waterfall_files[0]), use_column_width=True)
+            st.image(str(waterfall_files[0]), use_container_width=True)
 
 
 # ============================================================
@@ -513,7 +513,7 @@ def page_risk_assessment():
         submitted = st.form_submit_button(
             "Generate Risk Assessment",
             type="primary",
-            use_column_width=True,
+            use_container_width=True,
         )
 
     # --- Process Prediction ---
